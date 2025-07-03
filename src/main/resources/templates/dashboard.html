@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="shortcut icon" href="/images/LOGO.png" />
+    <title>HC Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<div class="title-bar">
+    <img src="/images/BNP.jpg">
+    <h1>TPLM Health Check Dashboard</h1>
+    <form th:action="@{/logout}" method="post" class="logout-btn">
+        <button type="submit" class="btn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </form>
+</div>
+<div class="container-wrapper">
+    <div class="container mt-4">
+        <div th:if="${#lists.isEmpty(applications)}" class="alert alert-warning">
+            No applications found or all applications have validation errors.
+        </div>
+        <ul class="nav nav-tabs" id="appTabs" role="tablist">
+            <li class="nav-item" th:each="app, appStat : ${applications}">
+                <a class="nav-link" th:classappend="${appStat.first} ? 'active'"
+                   th:id="'app-' + ${appStat.index} + '-tab'"
+                   data-bs-toggle="tab"
+                   th:data-bs-target="'#app-' + ${appStat.index}" role="tab">
+                    <span th:text="${app.name}"></span>
+                    <span th:if="${app.name == null}" class="validation-warning">(No name)</span>
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content" id="appTabContent">
+            <div class="tab-pane fade" th:each="app, appStat : ${applications}"
+                 th:classappend="${appStat.first} ? 'show active'"
+                 th:id="'app-' + ${appStat.index}" role="tabpanel">
+                <div th:if="${app.environments == null || app.environments.empty}" class="alert alert-warning">
+                    No environments defined for this application.
+                </div>
+                <ul class="nav nav-tabs env-tabs" th:if="${app.environments}" role="tablist">
+                    <li class="nav-item" th:each="env, envStat : ${app.environments}">
+                        <a class="nav-link" th:classappend="${envStat.first} ? 'active'"
+                           th:id="'env-' + ${envStat.index} + '-tab'"
+                           data-bs-toggle="tab"
+                           th:data-bs-target="'#env-' + ${envStat.index}" role="tab">
+                            <span th:text="${env.name}"></span>
+                            <span th:if="${env.name == null}" class="validation-warning">(No name)</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content" th:if="${app.environments}">
+                    <div class="tab-pane fade" th:each="env, envStat : ${app.environments}"
+                         th:classappend="${envStat.first} ? 'show active'"
+                         th:id="'env-' + ${envStat.index}" role="tabpanel">
+                        <div th:if="${env.servers == null || env.servers.empty}" class="alert alert-warning">
+                            No servers defined for this environment.
+                        </div>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="server-name">Server Name</th>
+                                    <th class="server-ip">IP Address</th>
+                                    <th class="server-os">OS</th>
+                                    <th class="server-services">Services</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="server : ${env.servers}">
+                                    <td>
+                                        <span th:text="${server.name}"></span>
+                                        <span th:if="${server.name == null}" class="validation-warning">(No name)</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${server.ip}"></span>
+                                        <span th:if="${server.ip == null}" class="validation-warning">(No IP)</span>
+                                    </td>
+                                    <td>
+                                        <span th:text="${server.os}"></span>
+                                        <span th:if="${server.os == null}" class="validation-warning">(No OS)</span>
+                                    </td>
+                                    <td>
+                                        <div th:if="${server.services == null || server.services.empty}" class="alert alert-warning">
+                                            No services defined for this server.
+                                        </div>
+                                        <table class="table table-sm service-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="service-name">Name</th>
+                                                    <th class="service-type">Type</th>
+                                                    <th class="service-status-cmd" th:if="${server.services[0].type == 'app'}">Status Command</th>
+                                                    <th class="service-startup-cmd" th:if="${server.services[0].type == 'app'}">Startup Command</th>
+                                                    <th class="service-db-type" th:if="${server.services[0].type == 'db'}">DB Type</th>
+                                                    <th class="service-tns-alias" th:if="${server.services[0].type == 'db'}">TNS Alias</th>
+                                                    <th class="service-status">Status</th>
+                                                    <th class="service-actions">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="service : ${server.services}">
+                                                    <td class="service-name">
+                                                        <span th:text="${service.name}"></span>
+                                                        <span th:if="${service.name == null}" class="validation-warning">(No name)</span>
+                                                    </td>
+                                                    <td class="service-type">
+                                                        <span th:text="${service.type}"></span>
+                                                        <span th:if="${service.type == null}" class="validation-warning">(No type)</span>
+                                                    </td>
+                                                    <td class="service-status-cmd" th:if="${service.type == 'app'}">
+                                                        <span th:if="${service.statusCmd != null}" th:text="${service.statusCmd}"></span>
+                                                        <span th:if="${service.statusScript != null}" th:text="${service.statusScript}"></span>
+                                                        <span th:if="${service.statusCmd == null and service.statusScript == null}" class="validation-warning">(No status command/script)</span>
+                                                    </td>
+                                                    <td class="service-startup-cmd" th:if="${service.type == 'app'}">
+                                                        <span th:if="${service.startupCmd != null}" th:text="${service.startupCmd}"></span>
+                                                        <span th:if="${service.startScript != null}" th:text="${service.startScript}"></span>
+                                                        <span th:if="${service.startupCmd == null and service.startScript == null}" class="validation-warning">(No startup command/script)</span>
+                                                    </td>
+                                                    <td class="service-db-type" th:if="${service.type == 'db'}" th:text="${service.dbType}">
+                                                    </td>
+                                                    <td class="service-tns-alias" th:if="${service.type == 'db'}">
+                                                        <span th:text="${service.tnsAlias}"></span>
+                                                        <span th:if="${service.tnsAlias == null}" class="validation-warning">(No TNS alias)</span>
+                                                    </td>
+                                                    <td class="service-status" th:attr="data-status-key=${app.name + '|' + env.name + '|' + server.name + '|' + service.name}">
+                                                        <span class="status-indicator"></span>
+                                                    </td>
+                                                    <td class="service-actions">
+                                                        <button class="btn btn-sm btn-outline-success restart-btn" style="background-color: white;"
+                                                                th:data-app-name="${app.name}"
+                                                                th:data-server-name="${server.name}"
+                                                                th:data-server-ip="${server.ip}"
+                                                                th:data-server-os="${server.os}"
+                                                                th:data-service-name="${service.name}"
+                                                                th:data-service-type="${service.type}"
+                                                                th:data-startup-cmd="${service.startupCmd}"
+                                                                th:data-start-script="${service.startScript}">
+                                                            <i class="fas fa-sync-alt"></i> Restart
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ActivatorService Section -->
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-robot"></i> Auto-Restart Service (Activator)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Schedule Information</h6>
+                        <p><strong>Next Scheduled Restart:</strong> <span id="nextSchedule">Loading...</span></p>
+                        <p><strong>Schedule:</strong> Every Thursday at 4:30 PM</p>
+                        <button id="triggerManualBtn" class="btn btn-warning">
+                            <i class="fas fa-play"></i> Trigger Manual Restart
+                        </button>
+                        <button id="refreshStatusBtn" class="btn btn-success">
+                            <i class="fas fa-sync-alt"></i> Refresh Status
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Current Status</h6>
+                        <p><strong>Down Services:</strong> <span id="downServicesCount">Loading...</span></p>
+                        <p><strong>Recent Logs:</strong> <span id="recentLogsCount">Loading...</span></p>
+                        <button id="viewLogsBtn" class="btn btn-info">
+                            <i class="fas fa-list"></i> View All Logs
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="activatorLogs" class="mt-3" style="display: none;">
+                    <h6>Recent Auto-Restart Logs</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html> 

@@ -1,0 +1,33 @@
+applications:
+  - name: "GCP Mumbai Production Environment"
+    environments:
+      - name: "Production"
+        servers:
+          - name: "Linux-Server"
+            ip: 34.47.226.211
+            os: "linux"
+            services:
+              - name: "Tomcat"
+                type: "app"
+                statusCmd: "systemctl status tomcat"
+                startupCmd: "systemctl start tomcat"
+                statusScript: "/opt/tomcat/bin/version.sh"
+                startScript: "/opt/tomcat/bin/startup.sh"
+              - name: "JBoss"
+                type: "app"
+                statusCmd: "systemctl status jboss"
+                startupCmd: "systemctl start jboss"
+                statusScript: "/opt/jboss/bin/jboss-cli.sh --connect :read-attribute(name=server-state)"
+                startScript: "/opt/jboss/bin/standalone.sh"
+          - name: "Windows-Server"
+            ip: 34.100.134.103
+            os: "windows"
+            services:
+              - name: "Tomcat-Windows"
+                type: "app"
+                statusCmd: "Get-Service -Name Tomcat9"
+                startupCmd: "Start-Service -Name Tomcat9"
+              - name: "IIS"
+                type: "app"
+                statusCmd: "Get-Service -Name W3SVC"
+                startupCmd: "Start-Service -Name W3SVC" 
