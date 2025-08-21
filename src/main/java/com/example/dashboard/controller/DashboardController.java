@@ -43,18 +43,18 @@ public class DashboardController {
         return "redirect:/login?error";
     }
 
-    @PostMapping("/executeCommand")
-    @ResponseBody
-    public Map<String, String> executeCommand(@RequestBody CommandRequest request) {
-        String result = ansibleExecutionService.executeCommand(
-            request.getApplication(),
-            request.getIp(),
-            request.getCommand(),
-            request.getOs()
-        );
+    // @PostMapping("/executeCommand")
+    // @ResponseBody
+    // public Map<String, String> executeCommand(@RequestBody CommandRequest request) {
+    //     String result = ansibleExecutionService.executeCommand(
+    //         request.getApplication(),
+    //         request.getIp(),
+    //         request.getCommand(),
+    //         request.getOs()
+    //     );
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", result);
-        return response;
-    }
+        // Map<String, String> response = new HashMap<>();
+        // response.put("message", result);
+        // return response;
+    // }
 } 

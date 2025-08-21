@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- File logging disabled - keeping only console logging -->
+    <!--
     <property name="LOG_FILE" value="logs/application.log"/>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
@@ -8,6 +10,7 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+    -->
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -15,8 +18,30 @@
         </encoder>
     </appender>
 
+    <!-- Reduce verbosity for Spring Framework -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.boot" level="WARN"/>
+    
+    <!-- Reduce verbosity for Ansible and SSH -->
+    <logger name="ansible" level="ERROR"/>
+    <logger name="paramiko" level="ERROR"/>
+    <logger name="ssh" level="ERROR"/>
+    
+    <!-- Reduce verbosity for Hibernate/JPA -->
+    <logger name="org.hibernate" level="ERROR"/>
+    <logger name="org.springframework.orm" level="WARN"/>
+    
+    <!-- Reduce verbosity for Tomcat -->
+    <logger name="org.apache.tomcat" level="WARN"/>
+    <logger name="org.apache.catalina" level="WARN"/>
+    
+    <!-- Application specific logging -->
+    <logger name="com.example.dashboard" level="INFO"/>
+    
+    <!-- Root level -->
     <root level="WARN">
-        <appender-ref ref="FILE"/>
+        <!-- <appender-ref ref="FILE"/> -->
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration> 

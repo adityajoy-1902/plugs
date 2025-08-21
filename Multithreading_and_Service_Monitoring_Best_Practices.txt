@@ -1,0 +1,79 @@
+Multithreading and Service Monitoring: Best Practices & Knowledge Summary
+
+------------------------------------------------------------
+
+1. Should the Number of Threads Equal the Number of CPU Cores?
+------------------------------------------------------------
+- CPU-bound tasks:
+  - Number of threads ≈ number of CPU cores (sometimes +1).
+- I/O-bound tasks (like network/service checks):
+  - Number of threads can be much higher than the number of CPU cores.
+
+2. Your Application’s Workload
+------------------------------------------------------------
+- Nature:
+  - Monitors and manages services across multiple servers, running remote commands (I/O-bound).
+- Implication:
+  - More threads than CPU cores is usually optimal.
+
+3. Recommended Multithreading Strategy
+------------------------------------------------------------
+- Use a thread pool (ExecutorService):
+  - Avoids overhead of creating/destroying threads.
+- Suggested pool size:
+  - Start with 2 × number of CPU cores or at least 10.
+- Example:
+  int cores = Runtime.getRuntime().availableProcessors();
+  int poolSize = Math.max(10, cores * 2);
+  ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+- Monitor and adjust based on system performance and workload.
+
+4. When to Use a Cached Thread Pool
+------------------------------------------------------------
+- For highly variable or bursty loads:
+  ExecutorService executor = Executors.newCachedThreadPool();
+- Caution:
+  - Can use a lot of memory if not managed.
+
+5. Why Not Always Match Threads to Cores?
+------------------------------------------------------------
+- For I/O-bound tasks, many threads will be waiting for I/O, so more threads help keep the CPU busy.
+- For CPU-bound tasks, too many threads cause context switching and reduce performance.
+
+6. Automatic vs. Manual Service Restart
+------------------------------------------------------------
+- Automatic restarts:
+  - Handled by a scheduled method in the service layer (e.g., @Scheduled in Spring). No controller endpoint is needed.
+- Manual restarts:
+  - Exposed via controller endpoints for user-triggered actions.
+
+7. Why Immediate Status Cache Update Is Important
+------------------------------------------------------------
+- Without immediate update:
+  - UI only sees new status after the next scheduled check (delay, manual refresh needed).
+- With immediate update:
+  - UI sees new status on the next poll (no manual refresh needed).
+
+8. Debugging UI Not Updating Automatically
+------------------------------------------------------------
+- Ensure frontend polling is running (setInterval).
+- Ensure backend cache is updated immediately after operations.
+- Check for API response caching issues.
+- Make sure UI update logic is correct.
+
+Summary Table
+------------------------------------------------------------
+| Workload Type | Recommended Thread Count                |
+|---------------|----------------------------------------|
+| CPU-bound     | Number of CPU cores (or cores + 1)     |
+| I/O-bound     | Higher than number of cores (experiment)|
+| Mixed         | Tune based on profiling                |
+
+------------------------------------------------------------
+
+How to Use This Document
+------------------------------------------------------------
+- Use this as a reference for designing and tuning multithreaded, service-monitoring applications.
+- Adjust thread pool sizes based on your workload and monitor system performance.
+- Always ensure your backend status cache is updated immediately after service operations for real-time UI feedback.
+- For further customization or more details, add your own notes below. 

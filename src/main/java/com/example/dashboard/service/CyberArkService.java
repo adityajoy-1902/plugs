@@ -12,15 +12,15 @@ public class CyberArkService {
         // In a real implementation, this would connect to CyberArk to retrieve credentials
         Map<String, String> credentials = new HashMap<>();
         
-        // Linux server credentials (34.47.226.211)
-        if (ip.equals("34.47.226.211") && os.equalsIgnoreCase("linux")) {
-            credentials.put("username", "dashboard_user");
-            credentials.put("password", "password123");
+        // Linux server credentials (35.200.187.236)
+        if (ip.equals("35.200.187.236") && os.equalsIgnoreCase("linux")) {
+            credentials.put("username", "aditya2219jain");
+            credentials.put("password", "pass");
         }
-        // Windows server credentials (34.100.134.103)
-        else if (ip.equals("34.100.134.103") && os.equalsIgnoreCase("windows")) {
-            credentials.put("username", "adit");
-            credentials.put("password", "?Jb16)c1Md}B[eA");
+        // Windows server credentials (35.200.246.189)
+        else if (ip.equals("35.200.246.189") && os.equalsIgnoreCase("windows")) {
+            credentials.put("username", "aditya");
+            credentials.put("password", "t}ER_~ZJVre5ZG!");
         }
         // Default credentials
         else {
@@ -32,26 +32,26 @@ public class CyberArkService {
     }
 
     public String getUsername(String application, String os, String ip) {
-        // Linux server credentials (34.47.226.211)
-        if (ip.equals("34.47.226.211") && os.equalsIgnoreCase("linux")) {
-            return "dashboard_user";
+        // Linux server credentials (35.200.187.236)
+        if (ip.equals("35.200.187.236") && os.equalsIgnoreCase("linux")) {
+            return "dashboard";
         }
-        // Windows server credentials (34.100.134.103)
-        else if (ip.equals("34.100.134.103") && os.equalsIgnoreCase("windows")) {
-            return "adit";
+        // Windows server credentials (35.200.246.189)
+        else if (ip.equals("35.200.246.189") && os.equalsIgnoreCase("windows")) {
+            return "aditya";
         }
         // Default credentials
         return "admin";
     }
 
     public String getPasswordForServer(String application, String os, String ip) {
-        // Linux server credentials (34.47.226.211)
-        if (ip.equals("34.47.226.211") && os.equalsIgnoreCase("linux")) {
-            return "password123";
+        // Linux server credentials (35.200.187.236)
+        if (ip.equals("35.200.187.236") && os.equalsIgnoreCase("linux")) {
+            return "dashboard123";
         }
-        // Windows server credentials (34.100.134.103)
-        else if (ip.equals("34.100.134.103") && os.equalsIgnoreCase("windows")) {
-            return "?Jb16)c1Md}B[eA";
+        // Windows server credentials (35.200.246.189)
+        else if (ip.equals("35.200.246.189") && os.equalsIgnoreCase("windows")) {
+            return "t}ER_~ZJVre5ZG!";
         }
         // Default credentials
         return "password";

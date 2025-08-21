@@ -14,6 +14,9 @@ public class Service {
     // Required field
     private String type;
 
+    // Group field for coordinated restarts (e.g., "elasticsearch" for master-slave services)
+    private String group;
+
     // At least one of these should be present
     private String cmd;
     private String startupCmd;

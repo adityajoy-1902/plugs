@@ -4,6 +4,7 @@ import com.example.dashboard.model.Application;
 import com.example.dashboard.model.Environment;
 import com.example.dashboard.model.Server;
 import com.example.dashboard.model.Service;
+import com.example.dashboard.model.GroupedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import jakarta.annotation.PostConstruct;
@@ -63,7 +64,26 @@ public class ActivatorService {
         List<String> downServices = new ArrayList<>();
         List<String> restartAttempts = new ArrayList<>();
 
-        // MULTITHREADED RESTART: Submit all restart tasks to thread pool
+        // Group services by their group tag
+        Map<String, List<GroupedService>> groupedServices = groupServicesByGroup(applications, currentStatuses);
+        
+        // Handle grouped services first
+        for (Map.Entry<String, List<GroupedService>> entry : groupedServices.entrySet()) {
+            String groupName = entry.getKey();
+            List<GroupedService> groupServices = entry.getValue();
+            
+            // Check if any service in the group is down
+            boolean hasDownService = groupServices.stream()
+                .anyMatch(gs -> "down".equals(gs.getStatus()));
+            
+            if (hasDownService) {
+                System.out.println("=== Group '" + groupName + "' has down services. Performing coordinated restart ===");
+                String result = restartGroupedServices(groupServices);
+                restartAttempts.add("Group " + groupName + ": " + result);
+            }
+        }
+
+        // Handle non-grouped services (existing logic)
         List<Future<String>> futures = new ArrayList<>();
 
         for (Application app : applications) {
@@ -73,6 +93,11 @@ public class ActivatorService {
                 for (Server server : env.getServers()) {
                     if (server.getServices() == null) continue;
                     for (Service service : server.getServices()) {
+                        // Skip services that are part of a group (already handled above)
+                        if (service.getGroup() != null && !service.getGroup().isEmpty()) {
+                            continue;
+                        }
+                        
                         String key = makeKey(app.getName(), env.getName(), server.getName(), service.getName());
                         String status = currentStatuses.get(key);
                         
@@ -137,7 +162,7 @@ public class ActivatorService {
         System.out.println(logEntry);
         
         // IMMEDIATE STATUS REFRESH: Update all service statuses after auto-restart
-        if (!downServices.isEmpty()) {
+        if (!downServices.isEmpty() || !groupedServices.isEmpty()) {
             System.out.println("=== Refreshing service statuses after auto-restart ===");
             try {
                 // Wait a bit for services to fully start up
@@ -293,6 +318,177 @@ public class ActivatorService {
         } catch (InterruptedException e) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
+        }
+    }
+
+    // Helper class to hold grouped service information
+
+
+    // Group services by their group tag
+    private Map<String, List<GroupedService>> groupServicesByGroup(List<Application> applications, Map<String, String> currentStatuses) {
+        Map<String, List<GroupedService>> groupedServices = new HashMap<>();
+        
+        for (Application app : applications) {
+            if (app.getEnvironments() == null) continue;
+            for (Environment env : app.getEnvironments()) {
+                if (env.getServers() == null) continue;
+                for (Server server : env.getServers()) {
+                    if (server.getServices() == null) continue;
+                    for (Service service : server.getServices()) {
+                        if (service.getGroup() != null && !service.getGroup().isEmpty()) {
+                            String groupName = service.getGroup();
+                            String key = makeKey(app.getName(), env.getName(), server.getName(), service.getName());
+                            String status = currentStatuses.get(key);
+                            
+                                                    GroupedService groupedService = new GroupedService(
+                            app.getName(), env.getName(), server.getName(), service.getName(),
+                            server, service, status, key, service.getGroup()
+                        );
+                            
+                            groupedServices.computeIfAbsent(groupName, k -> new ArrayList<>()).add(groupedService);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return groupedServices;
+    }
+
+    // Restart grouped services in the correct order
+    private String restartGroupedServices(List<GroupedService> groupServices) {
+        try {
+            System.out.println("=== Starting coordinated restart for group with " + groupServices.size() + " services ===");
+            
+            // Sort services: master first (ES-M), then slaves (ES-1, ES-2, etc.)
+            groupServices.sort((a, b) -> {
+                // If one is master (ends with -M), it should come first
+                boolean aIsMaster = a.getServiceName().endsWith("-M");
+                boolean bIsMaster = b.getServiceName().endsWith("-M");
+                
+                if (aIsMaster && !bIsMaster) return -1;
+                if (!aIsMaster && bIsMaster) return 1;
+                
+                // If both are master or both are slave, sort alphabetically
+                return a.getServiceName().compareTo(b.getServiceName());
+            });
+            
+            System.out.println("Service restart order: " + groupServices.stream()
+                .map(GroupedService::getServiceName)
+                .collect(java.util.stream.Collectors.joining(" -> ")));
+            
+            // Step 1: Stop all services in reverse order (slaves first, then master)
+            System.out.println("=== Step 1: Stopping services in reverse order ===");
+            List<GroupedService> reverseOrder = new ArrayList<>(groupServices);
+            java.util.Collections.reverse(reverseOrder);
+            
+            for (GroupedService gs : reverseOrder) {
+                System.out.println("Stopping service: " + gs.getServiceName());
+                String stopResult = stopService(gs.getAppName(), gs.getEnvName(), gs.getServerName(), 
+                                              gs.getServiceName(), gs.getServer(), gs.getService());
+                System.out.println("Stop result for " + gs.getServiceName() + ": " + stopResult);
+                
+                // Wait a bit between stops
+                Thread.sleep(5000);
+            }
+            
+            // Step 2: Start all services in correct order (master first, then slaves)
+            System.out.println("=== Step 2: Starting services in correct order ===");
+            for (GroupedService gs : groupServices) {
+                System.out.println("Starting service: " + gs.getServiceName());
+                String startResult = startService(gs.getAppName(), gs.getEnvName(), gs.getServerName(), 
+                                                gs.getServiceName(), gs.getServer(), gs.getService());
+                System.out.println("Start result for " + gs.getServiceName() + ": " + startResult);
+                
+                // Wait a bit between starts
+                Thread.sleep(10000);
+            }
+            
+            System.out.println("=== Coordinated restart completed ===");
+            return "SUCCESS: All services in group restarted successfully";
+            
+        } catch (Exception e) {
+            String errorMsg = "ERROR: " + e.getMessage();
+            System.err.println("Coordinated restart failed: " + errorMsg);
+            return errorMsg;
+        }
+    }
+
+    // Stop a specific service
+    private String stopService(String appName, String envName, String serverName, String serviceName, 
+                              Server server, Service service) {
+        try {
+            String os = server.getOs();
+            String ip = server.getIp();
+            String application = appName;
+            
+            String stopCmd = service.getStopCmd();
+            if (stopCmd == null) {
+                return "ERROR: No stop command configured";
+            }
+
+            // Prepend sudo for Linux commands
+            if (os != null && !os.equalsIgnoreCase("windows") && !stopCmd.startsWith("sudo ")) {
+                stopCmd = "sudo " + stopCmd;
+            }
+
+            System.out.println("Stopping service: " + serviceName + " on " + serverName);
+            String result = ansibleExecutionService.executeCommand(application, ip, stopCmd, os);
+            
+            if (result.startsWith("SUCCESS")) {
+                return "SUCCESS: Service stopped successfully";
+            } else {
+                return "FAILED: " + result;
+            }
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    // Start a specific service
+    private String startService(String appName, String envName, String serverName, String serviceName, 
+                               Server server, Service service) {
+        try {
+            String os = server.getOs();
+            String ip = server.getIp();
+            String application = appName;
+            
+            String startCmd = service.getStartupCmd();
+            if (startCmd == null) {
+                return "ERROR: No startup command configured";
+            }
+
+            // Prepend sudo for Linux commands
+            if (os != null && !os.equalsIgnoreCase("windows") && !startCmd.startsWith("sudo ")) {
+                startCmd = "sudo " + startCmd;
+            }
+
+            System.out.println("Starting service: " + serviceName + " on " + serverName);
+            String result = ansibleExecutionService.executeCommand(application, ip, startCmd, os);
+            
+            if (result.startsWith("SUCCESS")) {
+                // Wait a bit for service to start
+                Thread.sleep(10000);
+                
+                // Check if service is now up
+                String statusCmd = service.getStatusCmd();
+                if (statusCmd != null) {
+                    if (os != null && !os.equalsIgnoreCase("windows") && !statusCmd.startsWith("sudo ")) {
+                        statusCmd = "sudo " + statusCmd;
+                    }
+                    String statusResult = ansibleExecutionService.executeCommand(application, ip, statusCmd, os);
+                    if (statusResult.toLowerCase().contains("running") || statusResult.toLowerCase().contains("active")) {
+                        return "SUCCESS: Service started and is now running";
+                    } else {
+                        return "PARTIAL: Service started but status unclear";
+                    }
+                }
+                return "SUCCESS: Service start command executed";
+            } else {
+                return "FAILED: " + result;
+            }
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
         }
     }
 } 

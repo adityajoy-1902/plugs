@@ -42,19 +42,18 @@ public class AnsibleExecutionService {
             String ansibleCmd;
             if (os.equalsIgnoreCase("windows")) {
                 ansibleCmd = String.format(
-                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s ansible_connection=winrm ansible_winrm_transport=ntlm ansible_port=5986 ansible_winrm_server_cert_validation=ignore ansible_winrm_operation_timeout_sec=280 ansible_winrm_read_timeout_sec=300\" -m win_shell -a '%s' -vvvv",
+                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s ansible_connection=winrm ansible_winrm_transport=ntlm ansible_port=5986 ansible_winrm_server_cert_validation=ignore ansible_winrm_operation_timeout_sec=280 ansible_winrm_read_timeout_sec=300\" -m win_shell -a '%s'",
                         ip, user, password, command
                 );
             } else {
                 ansibleCmd = String.format(
-                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s\" --ssh-common-args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password -o ConnectTimeout=30' -m shell -a '%s' -vvvv",
+                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s\" --ssh-common-args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password -o ConnectTimeout=30' -m shell -a '%s'",
                         ip, user, password, command
                 );
             }
 
-            // Enhanced logging
-            System.out.println("\n=== ANSIBLE COMMAND EXECUTION ==");
-            System.out.println("Executing command: " + ansibleCmd);
+            // Log command execution
+            System.out.println("Executing Ansible command on " + os + " server: " + ip);
 
             // Execute the command
             ProcessBuilder processBuilder = new ProcessBuilder();
@@ -67,18 +66,17 @@ public class AnsibleExecutionService {
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
 
-            // Read output in real-time with enhanced logging
+            // Read output silently
             StringBuilder output = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     output.append(line).append("\n");
-                    System.out.println("[ANSIBLE OUTPUT] " + line);
                 }
             }
 
             int exitCode = process.waitFor();
-            System.out.println("Command execution completed with exit code: " + exitCode);
+            System.out.println("Command completed with exit code: " + exitCode);
 
             if (exitCode == 0) {
                 return "SUCCESS: Command executed successfully on " + os + " server.\nOutput: " + output.toString();
@@ -102,18 +100,17 @@ public class AnsibleExecutionService {
             String ansibleCmd;
             if (os.equalsIgnoreCase("windows")) {
                 ansibleCmd = String.format(
-                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s ansible_connection=winrm ansible_winrm_transport=ntlm ansible_port=5986 ansible_winrm_server_cert_validation=ignore ansible_winrm_operation_timeout_sec=280 ansible_winrm_read_timeout_sec=300\" -m win_ping -vvvv",
+                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s ansible_connection=winrm ansible_winrm_transport=ntlm ansible_port=5986 ansible_winrm_server_cert_validation=ignore ansible_winrm_operation_timeout_sec=280 ansible_winrm_read_timeout_sec=300\" -m win_ping",
                         ip, user, password
                 );
             } else {
                 ansibleCmd = String.format(
-                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s\" --ssh-common-args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password -o ConnectTimeout=30' -m ping -vvvv",
+                        "ansible all -i '%s,' -u %s --extra-vars \"ansible_password=%s\" --ssh-common-args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password -o ConnectTimeout=30' -m ping",
                         ip, user, password
                 );
             }
 
-            System.out.println("\n=== CONNECTION TEST START ===");
-            System.out.println("Executing connection test command: " + ansibleCmd);
+            System.out.println("Testing connection to " + os + " server: " + ip);
 
             ProcessBuilder processBuilder = new ProcessBuilder();
             if (System.getProperty("os.name").toLowerCase().contains("win")) {
@@ -130,7 +127,6 @@ public class AnsibleExecutionService {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     output.append(line).append("\n");
-                    System.out.println("[CONNECTION TEST] " + line);
                 }
             }
 
@@ -138,10 +134,8 @@ public class AnsibleExecutionService {
             System.out.println("Connection test completed with exit code: " + exitCode);
 
             if (exitCode == 0) {
-                String successMsg = "SUCCESS: Connection established successfully.\n" +
-                        "Details:\n" + output.toString();
-                System.out.println(successMsg);
-                return successMsg;
+                System.out.println("Connection successful to " + os + " server: " + ip);
+                return "SUCCESS: Connection established successfully.";
             } else {
                 String errorMsg = String.format(
                         "ERROR: Connection test failed with exit code %d.\n" +

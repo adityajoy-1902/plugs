@@ -1,0 +1,437 @@
+applications:
+  # Application 1: E-commerce Platform
+  - name: "E-Commerce Platform"
+    environments:
+      - name: "Production"
+        servers:
+          # Elasticsearch Cluster - Production
+          - name: "ES-Prod-Master"
+            ip: "192.168.1.10"
+            os: "linux"
+            services:
+              - name: "ES-M"
+                type: "app"
+                group: "elasticsearch-prod"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+                statusScript: "/opt/elasticsearch/bin/check-status.sh"
+              
+          - name: "ES-Prod-Slave1"
+            ip: "192.168.1.11"
+            os: "linux"
+            services:
+              - name: "ES-1"
+                type: "app"
+                group: "elasticsearch-prod"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+                statusScript: "/opt/elasticsearch/bin/check-status.sh"
+              
+          - name: "ES-Prod-Slave2"
+            ip: "192.168.1.12"
+            os: "linux"
+            services:
+              - name: "ES-2"
+                type: "app"
+                group: "elasticsearch-prod"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+                statusScript: "/opt/elasticsearch/bin/check-status.sh"
+              
+          # Application Servers
+          - name: "App-Server-1"
+            ip: "192.168.1.20"
+            os: "linux"
+            services:
+              - name: "Tomcat"
+                type: "app"
+                startupCmd: "systemctl start tomcat"
+                stopCmd: "systemctl stop tomcat"
+                statusCmd: "systemctl status tomcat"
+              
+              - name: "Nginx"
+                type: "app"
+                startupCmd: "systemctl start nginx"
+                stopCmd: "systemctl stop nginx"
+                statusCmd: "systemctl status nginx"
+              
+          - name: "App-Server-2"
+            ip: "192.168.1.21"
+            os: "linux"
+            services:
+              - name: "Tomcat"
+                type: "app"
+                startupCmd: "systemctl start tomcat"
+                stopCmd: "systemctl stop tomcat"
+                statusCmd: "systemctl status tomcat"
+              
+              - name: "Nginx"
+                type: "app"
+                startupCmd: "systemctl start nginx"
+                stopCmd: "systemctl stop nginx"
+                statusCmd: "systemctl status nginx"
+              
+          # Database Cluster
+          - name: "DB-Master"
+            ip: "192.168.1.30"
+            os: "linux"
+            services:
+              - name: "MySQL-M"
+                type: "app"
+                group: "mysql-prod"
+                startupCmd: "systemctl start mysql"
+                stopCmd: "systemctl stop mysql"
+                statusCmd: "systemctl status mysql"
+              
+          - name: "DB-Slave1"
+            ip: "192.168.1.31"
+            os: "linux"
+            services:
+              - name: "MySQL-1"
+                type: "app"
+                group: "mysql-prod"
+                startupCmd: "systemctl start mysql"
+                stopCmd: "systemctl stop mysql"
+                statusCmd: "systemctl status mysql"
+              
+          - name: "DB-Slave2"
+            ip: "192.168.1.32"
+            os: "linux"
+            services:
+              - name: "MySQL-2"
+                type: "app"
+                group: "mysql-prod"
+                startupCmd: "systemctl start mysql"
+                stopCmd: "systemctl stop mysql"
+                statusCmd: "systemctl status mysql"
+              
+      - name: "Staging"
+        servers:
+          # Elasticsearch Cluster - Staging
+          - name: "ES-Stage-Master"
+            ip: "192.168.2.10"
+            os: "linux"
+            services:
+              - name: "ES-M"
+                type: "app"
+                group: "elasticsearch-stage"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          - name: "ES-Stage-Slave"
+            ip: "192.168.2.11"
+            os: "linux"
+            services:
+              - name: "ES-1"
+                type: "app"
+                group: "elasticsearch-stage"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          # Staging Application Server
+          - name: "Stage-App-Server"
+            ip: "192.168.2.20"
+            os: "linux"
+            services:
+              - name: "Tomcat"
+                type: "app"
+                startupCmd: "systemctl start tomcat"
+                stopCmd: "systemctl stop tomcat"
+                statusCmd: "systemctl status tomcat"
+              
+              - name: "Nginx"
+                type: "app"
+                startupCmd: "systemctl start nginx"
+                stopCmd: "systemctl stop nginx"
+                statusCmd: "systemctl status nginx"
+              
+          # Staging Database
+          - name: "Stage-DB"
+            ip: "192.168.2.30"
+            os: "linux"
+            services:
+              - name: "MySQL"
+                type: "app"
+                startupCmd: "systemctl start mysql"
+                stopCmd: "systemctl stop mysql"
+                statusCmd: "systemctl status mysql"
+
+  # Application 2: Content Management System
+  - name: "CMS Platform"
+    environments:
+      - name: "Production"
+        servers:
+          # CMS Elasticsearch Cluster
+          - name: "CMS-ES-Master"
+            ip: "192.168.3.10"
+            os: "linux"
+            services:
+              - name: "ES-M"
+                type: "app"
+                group: "elasticsearch-cms"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          - name: "CMS-ES-Slave1"
+            ip: "192.168.3.11"
+            os: "linux"
+            services:
+              - name: "ES-1"
+                type: "app"
+                group: "elasticsearch-cms"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          - name: "CMS-ES-Slave2"
+            ip: "192.168.3.12"
+            os: "linux"
+            services:
+              - name: "ES-2"
+                type: "app"
+                group: "elasticsearch-cms"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          # CMS Application Servers
+          - name: "CMS-App-1"
+            ip: "192.168.3.20"
+            os: "linux"
+            services:
+              - name: "WordPress"
+                type: "app"
+                startupCmd: "systemctl start apache2"
+                stopCmd: "systemctl stop apache2"
+                statusCmd: "systemctl status apache2"
+              
+              - name: "PHP-FPM"
+                type: "app"
+                startupCmd: "systemctl start php8.1-fpm"
+                stopCmd: "systemctl stop php8.1-fpm"
+                statusCmd: "systemctl status php8.1-fpm"
+              
+          - name: "CMS-App-2"
+            ip: "192.168.3.21"
+            os: "linux"
+            services:
+              - name: "WordPress"
+                type: "app"
+                startupCmd: "systemctl start apache2"
+                stopCmd: "systemctl stop apache2"
+                statusCmd: "systemctl status apache2"
+              
+              - name: "PHP-FPM"
+                type: "app"
+                startupCmd: "systemctl start php8.1-fpm"
+                stopCmd: "systemctl stop php8.1-fpm"
+                statusCmd: "systemctl status php8.1-fpm"
+              
+          # CMS Database
+          - name: "CMS-DB"
+            ip: "192.168.3.30"
+            os: "linux"
+            services:
+              - name: "MySQL"
+                type: "app"
+                startupCmd: "systemctl start mysql"
+                stopCmd: "systemctl stop mysql"
+                statusCmd: "systemctl status mysql"
+
+  # Application 3: Analytics Platform
+  - name: "Analytics Platform"
+    environments:
+      - name: "Production"
+        servers:
+          # Analytics Elasticsearch Cluster (Larger)
+          - name: "Analytics-ES-Master"
+            ip: "192.168.4.10"
+            os: "linux"
+            services:
+              - name: "ES-M"
+                type: "app"
+                group: "elasticsearch-analytics"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          - name: "Analytics-ES-Slave1"
+            ip: "192.168.4.11"
+            os: "linux"
+            services:
+              - name: "ES-1"
+                type: "app"
+                group: "elasticsearch-analytics"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          - name: "Analytics-ES-Slave2"
+            ip: "192.168.4.12"
+            os: "linux"
+            services:
+              - name: "ES-2"
+                type: "app"
+                group: "elasticsearch-analytics"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          - name: "Analytics-ES-Slave3"
+            ip: "192.168.4.13"
+            os: "linux"
+            services:
+              - name: "ES-3"
+                type: "app"
+                group: "elasticsearch-analytics"
+                startupCmd: "systemctl start elasticsearch"
+                stopCmd: "systemctl stop elasticsearch"
+                statusCmd: "systemctl status elasticsearch"
+              
+          # Analytics Processing Servers
+          - name: "Analytics-Processor-1"
+            ip: "192.168.4.20"
+            os: "linux"
+            services:
+              - name: "Kafka"
+                type: "app"
+                group: "kafka-analytics"
+                startupCmd: "systemctl start kafka"
+                stopCmd: "systemctl stop kafka"
+                statusCmd: "systemctl status kafka"
+              
+              - name: "Spark"
+                type: "app"
+                startupCmd: "systemctl start spark-master"
+                stopCmd: "systemctl stop spark-master"
+                statusCmd: "systemctl status spark-master"
+              
+          - name: "Analytics-Processor-2"
+            ip: "192.168.4.21"
+            os: "linux"
+            services:
+              - name: "Kafka"
+                type: "app"
+                group: "kafka-analytics"
+                startupCmd: "systemctl start kafka"
+                stopCmd: "systemctl stop kafka"
+                statusCmd: "systemctl status kafka"
+              
+              - name: "Spark"
+                type: "app"
+                startupCmd: "systemctl start spark-worker"
+                stopCmd: "systemctl stop spark-worker"
+                statusCmd: "systemctl status spark-worker"
+              
+          - name: "Analytics-Processor-3"
+            ip: "192.168.4.22"
+            os: "linux"
+            services:
+              - name: "Kafka"
+                type: "app"
+                group: "kafka-analytics"
+                startupCmd: "systemctl start kafka"
+                stopCmd: "systemctl stop kafka"
+                statusCmd: "systemctl status kafka"
+              
+              - name: "Spark"
+                type: "app"
+                startupCmd: "systemctl start spark-worker"
+                stopCmd: "systemctl stop spark-worker"
+                statusCmd: "systemctl status spark-worker"
+              
+          # Analytics Database Cluster
+          - name: "Analytics-DB-Master"
+            ip: "192.168.4.30"
+            os: "linux"
+            services:
+              - name: "PostgreSQL-M"
+                type: "app"
+                group: "postgresql-analytics"
+                startupCmd: "systemctl start postgresql"
+                stopCmd: "systemctl stop postgresql"
+                statusCmd: "systemctl status postgresql"
+              
+          - name: "Analytics-DB-Slave1"
+            ip: "192.168.4.31"
+            os: "linux"
+            services:
+              - name: "PostgreSQL-1"
+                type: "app"
+                group: "postgresql-analytics"
+                startupCmd: "systemctl start postgresql"
+                stopCmd: "systemctl stop postgresql"
+                statusCmd: "systemctl status postgresql"
+              
+          - name: "Analytics-DB-Slave2"
+            ip: "192.168.4.32"
+            os: "linux"
+            services:
+              - name: "PostgreSQL-2"
+                type: "app"
+                group: "postgresql-analytics"
+                startupCmd: "systemctl start postgresql"
+                stopCmd: "systemctl stop postgresql"
+                statusCmd: "systemctl status postgresql"
+
+  # Application 4: Windows Environment Example
+  - name: "Windows Application"
+    environments:
+      - name: "Production"
+        servers:
+          # Windows Elasticsearch Cluster
+          - name: "Win-ES-Master"
+            ip: "192.168.5.10"
+            os: "windows"
+            services:
+              - name: "ES-M"
+                type: "app"
+                group: "elasticsearch-windows"
+                startupCmd: "Start-Service -Name Elasticsearch"
+                stopCmd: "Stop-Service -Name Elasticsearch"
+                statusCmd: "Get-Service -Name Elasticsearch"
+              
+          - name: "Win-ES-Slave1"
+            ip: "192.168.5.11"
+            os: "windows"
+            services:
+              - name: "ES-1"
+                type: "app"
+                group: "elasticsearch-windows"
+                startupCmd: "Start-Service -Name Elasticsearch"
+                stopCmd: "Stop-Service -Name Elasticsearch"
+                statusCmd: "Get-Service -Name Elasticsearch"
+              
+          - name: "Win-ES-Slave2"
+            ip: "192.168.5.12"
+            os: "windows"
+            services:
+              - name: "ES-2"
+                type: "app"
+                group: "elasticsearch-windows"
+                startupCmd: "Start-Service -Name Elasticsearch"
+                stopCmd: "Stop-Service -Name Elasticsearch"
+                statusCmd: "Get-Service -Name Elasticsearch"
+              
+          # Windows Application Server
+          - name: "Win-App-Server"
+            ip: "192.168.5.20"
+            os: "windows"
+            services:
+              - name: "IIS"
+                type: "app"
+                startupCmd: "Start-Service -Name W3SVC"
+                stopCmd: "Stop-Service -Name W3SVC"
+                statusCmd: "Get-Service -Name W3SVC"
+              
+              - name: "SQL Server"
+                type: "app"
+                startupCmd: "Start-Service -Name MSSQLSERVER"
+                stopCmd: "Stop-Service -Name MSSQLSERVER"
+                statusCmd: "Get-Service -Name MSSQLSERVER" 

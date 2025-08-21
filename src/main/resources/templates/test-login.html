@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Test Database Authentication</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .container { max-width: 600px; margin-top: 50px; }
+        .status-box { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Database Authentication Test</h2>
+    
+    <div class="status-box">
+        <h5>Database Connection Status:</h5>
+        <div id="dbStatus">Checking...</div>
+    </div>
+    
+    <div class="status-box">
+        <h5>Current Users in Database:</h5>
+        <div id="userList">Loading...</div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>Test Login Form</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/login}" method="post">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            
+            <div th:if="${param.error}" class="alert alert-danger mt-3">
+                Invalid username or password - Authentication failed!
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success mt-3">
+                You have been logged out successfully.
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Create New User (Admin Only)</h5>
+        </div>
+        <div class="card-body">
+            <form id="createUserForm">
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="newUsername" placeholder="Username" required>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="password" class="form-control" id="newPassword" placeholder="Password" required>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-control" id="newRole" required>
+                            <option value="USER">USER</option>
+                            <option value="ADMIN">ADMIN</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success">Create</button>
+                    </div>
+                </div>
+            </form>
+            <div id="createResult" class="mt-2"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Check database connection status
+fetch('/auth/status')
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById('dbStatus').innerHTML = data;
+    })
+    .catch(error => {
+        document.getElementById('dbStatus').innerHTML = 'Error: ' + error.message;
+    });
+
+// Load current users
+fetch('/auth/users')
+    .then(response => response.json())
+    .then(users => {
+        let userList = '<ul>';
+        users.forEach(user => {
+            userList += `<li><strong>${user.username}</strong> (Role: ${user.role})</li>`;
+        });
+        userList += '</ul>';
+        document.getElementById('userList').innerHTML = userList;
+    })
+    .catch(error => {
+        document.getElementById('userList').innerHTML = 'Error loading users: ' + error.message;
+    });
+
+// Handle user creation
+document.getElementById('createUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('username', document.getElementById('newUsername').value);
+    formData.append('password', document.getElementById('newPassword').value);
+    formData.append('role', document.getElementById('newRole').value);
+    
+    fetch('/auth/create-user', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        document.getElementById('createResult').innerHTML = result;
+        // Refresh user list
+        location.reload();
+    })
+    .catch(error => {
+        document.getElementById('createResult').innerHTML = 'Error: ' + error.message;
+    });
+});
+</script>
+</body>
+</html>
